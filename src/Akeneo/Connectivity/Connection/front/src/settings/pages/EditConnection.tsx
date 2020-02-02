@@ -43,11 +43,11 @@ export type FormErrors = {
 
 const validate = ({label}: FormValues): FormErrors => {
     const errors: FormErrors = {};
+    if (label && label.trim().length < 3) {
+        errors.label = 'akeneo_connectivity.connection.connection.constraint.label.too_short';
+    }
     if (!label || label.trim().length === 0) {
         errors.label = 'akeneo_connectivity.connection.connection.constraint.label.required';
-    }
-    if (label.trim().length < 3) {
-        errors.label = 'akeneo_connectivity.connection.connection.constraint.label.too_short';
     }
     return errors;
 };
