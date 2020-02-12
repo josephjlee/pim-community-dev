@@ -21,23 +21,43 @@ import {connectionsFetched} from '../actions/connections-actions';
 import {ConnectionGrid} from '../components/ConnectionGrid';
 import {NoConnection} from '../components/NoConnection';
 import {useConnectionsDispatch, useConnectionsState} from '../connections-context';
+import {wrongCredentialsCombinationsFetched} from '../actions/wrong-credentials-combinations-actions';
+import {WrongCredentialsCombinations} from '../../model/wrong-credentials-combinations';
+import {
+    useWrongCredentialsCombinationsDispatch,
+    useWrongCredentialsCombinationsState,
+} from '../wrong-credentials-combinations-context';
 
 const MAXIMUM_NUMBER_OF_ALLOWED_CONNECTIONS = 50;
 
-type ResultValue = Array<Connection>;
+type ResultConnections = Array<Connection>;
 
 export const ListConnections = () => {
     const history = useHistory();
 
     const connections = useConnectionsState();
-    const dispatch = useConnectionsDispatch();
+    const dispatchConnection = useConnectionsDispatch();
 
-    const route = useRoute('akeneo_connectivity_connection_rest_list');
+    const wrongCredentialsCombinations = useWrongCredentialsCombinationsState();
+    const dispatchCombinations = useWrongCredentialsCombinationsDispatch();
+
+    const listConnectionRoute = useRoute('akeneo_connectivity_connection_rest_list');
     useEffect(() => {
-        fetchResult<ResultValue, never>(route).then(
-            result => isOk(result) && dispatch(connectionsFetched(result.value))
+        fetchResult<ResultConnections, never>(listConnectionRoute).then(
+            result => isOk(result) && dispatchConnection(connectionsFetched(result.value))
         );
-    }, [route, dispatch]);
+    }, [listConnectionRoute, dispatchConnection]);
+
+    const listWrongCombinationRoute = useRoute(
+        'akeneo_connectivity_connection_rest_wrong_credentials_combination_list'
+    );
+    useEffect(() => {
+        fetchResult<WrongCredentialsCombinations, never>(listWrongCombinationRoute).then(result => {
+            if (isOk(result)) {
+                dispatchCombinations(wrongCredentialsCombinationsFetched(result.value));
+            }
+        });
+    }, [listWrongCombinationRoute, dispatchCombinations]);
 
     const handleCreate = () => history.push('/connections/create');
 
@@ -103,6 +123,7 @@ export const ListConnections = () => {
                         {sourceConnections && sourceConnections.length > 0 && (
                             <ConnectionGrid
                                 connections={sourceConnections}
+                                wrongCredentialsCombinations={wrongCredentialsCombinations}
                                 title={
                                     <Translate
                                         id='akeneo_connectivity.connection.flow_type.data_source'
@@ -114,6 +135,7 @@ export const ListConnections = () => {
                         {destinationConnections && destinationConnections.length > 0 && (
                             <ConnectionGrid
                                 connections={destinationConnections}
+                                wrongCredentialsCombinations={wrongCredentialsCombinations}
                                 title={
                                     <Translate
                                         id='akeneo_connectivity.connection.flow_type.data_destination'
@@ -125,6 +147,7 @@ export const ListConnections = () => {
                         {otherConnections && otherConnections.length > 0 && (
                             <ConnectionGrid
                                 connections={otherConnections}
+                                wrongCredentialsCombinations={wrongCredentialsCombinations}
                                 title={
                                     <Translate
                                         id='akeneo_connectivity.connection.flow_type.other'
